@@ -40,6 +40,7 @@ export function initLifecycle (vm: Component) {
 
   vm._watcher = null
   vm._inactive = null
+  vm._dynamicComponent = noop;
   vm._directInactive = false
   vm._isMounted = false
   vm._isDestroyed = false
