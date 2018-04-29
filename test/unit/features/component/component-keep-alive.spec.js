@@ -393,6 +393,35 @@ describe('Component keep-alive', () => {
     }).then(done)
   })
 
+  it('prune cache on include/exclude change + view switch', done => {
+    const vm = new Vue({
+      template: `
+        <div>
+          <keep-alive :include="include">
+            <component :is="view"></component>
+          </keep-alive>
+        </div>
+      `,
+      data: {
+        view: 'one',
+        include: 'one,two'
+      },
+      components
+    }).$mount()
+
+    vm.view = 'two'
+    waitForUpdate(() => {
+      assertHookCalls(one, [1, 1, 1, 1, 0])
+      assertHookCalls(two, [1, 1, 1, 0, 0])
+      vm.include = 'one'
+      vm.view = 'one'
+    }).then(() => {
+      assertHookCalls(one, [1, 1, 2, 1, 0])
+      // two should be pruned
+      assertHookCalls(two, [1, 1, 1, 1, 1])
+    }).then(done)
+  })
+
   it('should not prune currently active instance', done => {
     const vm = new Vue({
       template: `
@@ -653,6 +682,34 @@ describe('Component keep-alive', () => {
     }).then(() => {
       expect(vm.$el.textContent).toBe('bar')
       assert(1, 1)
+    }).then(done)
+  })
+
+  // #7105
+  it('should not destroy active instance when pruning cache', done => {
+    const Foo = {
+      template: `<div>foo</div>`,
+      destroyed: jasmine.createSpy('destroyed')
+    }
+    const vm = new Vue({
+      template: `
+        <div>
+          <keep-alive :include="include">
+            <foo/>
+          </keep-alive>
+        </div>
+      `,
+      data: {
+        include: ['foo']
+      },
+      components: { Foo }
+    }).$mount()
+    // condition: a render where a previous component is reused
+    vm.include = ['foo']
+    waitForUpdate(() => {
+      vm.include = ['']
+    }).then(() => {
+      expect(Foo.destroyed).not.toHaveBeenCalled()
     }).then(done)
   })
 
