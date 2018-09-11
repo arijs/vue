@@ -63,6 +63,7 @@ declare interface Component {
   _props: Object;
   _events: Object;
   _inactive: boolean | null;
+  _lazyLoadComponent: (id: string) => void | Function;
   _directInactive: boolean;
   _isMounted: boolean;
   _isDestroyed: boolean;

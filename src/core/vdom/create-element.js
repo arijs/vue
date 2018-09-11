@@ -103,7 +103,7 @@ export function _createElement (
         undefined, undefined, context
       )
     } else {
-      Ctor = context._dynamicComponent(tag);
+      Ctor = context._lazyLoadComponent(tag)
       if (!Ctor) {
         Ctor = resolveAsset(context.$options, 'components', tag)
       }
