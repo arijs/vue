@@ -103,10 +103,7 @@ export function _createElement (
         undefined, undefined, context
       )
     } else {
-      Ctor = context._lazyLoadComponent(tag)
-      if (!Ctor) {
-        Ctor = resolveAsset(context.$options, 'components', tag)
-      }
+      Ctor = context._lazyLoadComponent(tag) || resolveAsset(context.$options, 'components', tag)
       if (isDef(Ctor)) {
         // component
         vnode = createComponent(Ctor, data, context, children, tag)

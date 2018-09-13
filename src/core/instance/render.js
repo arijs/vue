@@ -2,6 +2,7 @@
 
 import {
   warn,
+  noop,
   nextTick,
   emptyObject,
   handleError,
@@ -57,6 +58,8 @@ export function renderMixin (Vue: Class<Component>) {
   Vue.prototype.$nextTick = function (fn: Function) {
     return nextTick(fn, this)
   }
+
+  Vue.prototype._lazyLoadComponent = noop
 
   Vue.prototype._render = function (): VNode {
     const vm: Component = this
