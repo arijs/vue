@@ -13,9 +13,10 @@ import {
 import {
   extend,
   hasOwn,
-  camelize,
   toRawType,
+  camelize,
   capitalize,
+  identifierSpellings,
   isBuiltInTag,
   isPlainObject
 } from 'shared/util'
@@ -421,7 +422,7 @@ export function mergeOptions (
  * to assets defined in its ancestor chain.
  */
 export function resolveAsset (
-  options: Object,
+  context: Component,
   type: string,
   id: string,
   warnMissing?: boolean
@@ -430,6 +431,7 @@ export function resolveAsset (
   if (typeof id !== 'string') {
     return
   }
+  const options = context.$options
   const assets = options[type]
   // check local registration variations first
   if (hasOwn(assets, id)) return assets[id]
@@ -438,7 +440,13 @@ export function resolveAsset (
   const PascalCaseId = capitalize(camelizedId)
   if (hasOwn(assets, PascalCaseId)) return assets[PascalCaseId]
   // fallback to prototype chain
-  const res = assets[id] || assets[camelizedId] || assets[PascalCaseId]
+  let res = assets[id] || assets[camelizedId] || assets[PascalCaseId]
+  if (!res) {
+    const getAsset = options['get' + capitalize(type.slice(0, -1))]
+    if (getAsset instanceof Function) {
+      res = getAsset.call(context, id, identifierSpellings(id))
+    }
+  }
   if (process.env.NODE_ENV !== 'production' && warnMissing && !res) {
     warn(
       'Failed to resolve ' + type.slice(0, -1) + ': ' + id,
