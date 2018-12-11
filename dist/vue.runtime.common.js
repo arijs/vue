@@ -1,5 +1,5 @@
 /*!
- * Vue.js v2.5.19
+ * Vue.js v2.5.20
  * (c) 2014-2018 Evan You
  * Released under the MIT License.
  */
@@ -178,6 +178,20 @@ var capitalize = cached(function (str) {
 var hyphenateRE = /\B([A-Z])/g;
 var hyphenate = cached(function (str) {
   return str.replace(hyphenateRE, '-$1').toLowerCase()
+});
+
+/**
+ * Get all variations of a identifier spelling.
+ */
+var identifierSpellings = cached(function (str) {
+  var camelized = camelize(str);
+  return {
+    raw: str,
+    hyphenated: hyphenate(str),
+    camelized: camelized,
+    PascalCase: capitalize(camelized),
+    toString: function () { return str; }
+  }
 });
 
 /**
@@ -1526,7 +1540,22 @@ function mergeOptions (
  * to assets defined in its ancestor chain.
  */
 function resolveAsset (
+  context,
+  type,
+  id,
+  warnMissing
+) {
+  return resolveAssetOptions(context.$options, context, type, id, warnMissing);
+}
+
+/**
+ * Resolve an asset.
+ * This function is used because child instances need access
+ * to assets defined in its ancestor chain.
+ */
+function resolveAssetOptions (
   options,
+  context,
   type,
   id,
   warnMissing
@@ -1544,6 +1573,12 @@ function resolveAsset (
   if (hasOwn(assets, PascalCaseId)) { return assets[PascalCaseId] }
   // fallback to prototype chain
   var res = assets[id] || assets[camelizedId] || assets[PascalCaseId];
+  if (!res) {
+    var getAsset = options['get' + capitalize(type.slice(0, -1))];
+    if (getAsset instanceof Function) {
+      res = getAsset.call(context, id, identifierSpellings(id));
+    }
+  }
   if (process.env.NODE_ENV !== 'production' && warnMissing && !res) {
     warn(
       'Failed to resolve ' + type.slice(0, -1) + ': ' + id,
@@ -3884,7 +3919,7 @@ function renderSlot (
  * Runtime helper for resolving filters
  */
 function resolveFilter (id) {
-  return resolveAsset(this.$options, 'filters', id, true) || identity
+  return resolveAsset(this, 'filters', id, true) || identity
 }
 
 /*  */
@@ -4520,7 +4555,7 @@ function _createElement (
         config.parsePlatformTagName(tag), data, children,
         undefined, undefined, context
       );
-    } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
+    } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context, 'components', tag))) {
       // component
       vnode = createComponent(Ctor, data, context, children, tag);
     } else {
@@ -5179,7 +5214,7 @@ Object.defineProperty(Vue, 'FunctionalRenderContext', {
   value: FunctionalRenderContext
 });
 
-Vue.version = '2.5.19';
+Vue.version = '2.5.20';
 
 /*  */
 
@@ -6380,7 +6415,7 @@ function normalizeDirectives$1 (
       dir.modifiers = emptyModifiers;
     }
     res[getRawDirName(dir)] = dir;
-    dir.def = resolveAsset(vm.$options, 'directives', dir.name, true);
+    dir.def = resolveAsset(vm, 'directives', dir.name, true);
   }
   // $flow-disable-line
   return res

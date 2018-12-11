@@ -176,6 +176,20 @@
   });
 
   /**
+   * Get all variations of a identifier spelling.
+   */
+  var identifierSpellings = cached(function (str) {
+    var camelized = camelize(str);
+    return {
+      raw: str,
+      hyphenated: hyphenate(str),
+      camelized: camelized,
+      PascalCase: capitalize(camelized),
+      toString: function () { return str; }
+    }
+  });
+
+  /**
    * Simple bind polyfill for environments that do not support it,
    * e.g., PhantomJS 1.x. Technically, we don't need this anymore
    * since native bind is now performant enough in most browsers.
@@ -1626,7 +1640,22 @@
    * to assets defined in its ancestor chain.
    */
   function resolveAsset (
+    context,
+    type,
+    id,
+    warnMissing
+  ) {
+    return resolveAssetOptions(context.$options, context, type, id, warnMissing);
+  }
+
+  /**
+   * Resolve an asset.
+   * This function is used because child instances need access
+   * to assets defined in its ancestor chain.
+   */
+  function resolveAssetOptions (
     options,
+    context,
     type,
     id,
     warnMissing
@@ -1644,6 +1673,12 @@
     if (hasOwn(assets, PascalCaseId)) { return assets[PascalCaseId] }
     // fallback to prototype chain
     var res = assets[id] || assets[camelizedId] || assets[PascalCaseId];
+    if (!res) {
+      var getAsset = options['get' + capitalize(type.slice(0, -1))];
+      if (getAsset instanceof Function) {
+        res = getAsset.call(context, id, identifierSpellings(id));
+      }
+    }
     if (warnMissing && !res) {
       warn(
         'Failed to resolve ' + type.slice(0, -1) + ': ' + id,
@@ -6799,7 +6834,7 @@
     if (typeof tag === 'string') {
       var Ctor;
       ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag);
-      if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
+      if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context, 'components', tag))) {
         // component
         vnode = createComponent(Ctor, data, context, children, tag);
       } else {
@@ -6933,7 +6968,7 @@
    * Runtime helper for resolving filters
    */
   function resolveFilter (id) {
-    return resolveAsset(this.$options, 'filters', id, true) || identity
+    return resolveAsset(this, 'filters', id, true) || identity
   }
 
   /*  */
@@ -7906,7 +7941,7 @@
         for (var i = 0; i < dirs.length; i++) {
           var name = dirs[i].name;
           if (name !== 'show') {
-            var dirRenderer = resolveAsset(context, 'directives', name);
+            var dirRenderer = resolveAssetOptions(context, null, 'directives', name);
             if (dirRenderer) {
               // directives mutate the node's data
               // which then gets rendered by modules
