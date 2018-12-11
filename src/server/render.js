@@ -3,7 +3,7 @@
 import { escape } from 'web/server/util'
 import { SSR_ATTR } from 'shared/constants'
 import { RenderContext } from './render-context'
-import { resolveAsset } from 'core/util/options'
+import { resolveAssetOptions } from 'core/util/options'
 import { generateComponentTrace } from 'core/util/debug'
 import { ssrCompileToFunctions } from 'web/server/compiler'
 import { installSSRHelpers } from './optimizing-compiler/runtime-helpers'
@@ -326,7 +326,7 @@ function renderStartingTag (node: VNode, context) {
       for (let i = 0; i < dirs.length; i++) {
         const name = dirs[i].name
         if (name !== 'show') {
-          const dirRenderer = resolveAsset(context, 'directives', name)
+          const dirRenderer = resolveAssetOptions(context, null, 'directives', name)
           if (dirRenderer) {
             // directives mutate the node's data
             // which then gets rendered by modules

@@ -427,11 +427,25 @@ export function resolveAsset (
   id: string,
   warnMissing?: boolean
 ): any {
+  return resolveAssetOptions(context.$options, context, type, id, warnMissing);
+}
+
+/**
+ * Resolve an asset.
+ * This function is used because child instances need access
+ * to assets defined in its ancestor chain.
+ */
+export function resolveAssetOptions (
+  options: Object,
+  context: any,
+  type: string,
+  id: string,
+  warnMissing?: boolean
+): any {
   /* istanbul ignore if */
   if (typeof id !== 'string') {
     return
   }
-  const options = context.$options
   const assets = options[type]
   // check local registration variations first
   if (hasOwn(assets, id)) return assets[id]
