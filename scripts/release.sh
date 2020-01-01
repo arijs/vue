@@ -46,9 +46,9 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   cd packages/vue-server-renderer
   npm version "$VERSION"
   if [[ -z $RELEASE_TAG ]]; then
-    npm publish
+    npm publish --access public
   else
-    npm publish --tag "$RELEASE_TAG"
+    npm publish --access public --tag "$RELEASE_TAG"
   fi
   )
 
