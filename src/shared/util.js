@@ -159,6 +159,20 @@ export function cached<F: Function> (fn: F): F {
 }
 
 /**
+ * Get all variations of a identifier spelling.
+ */
+export const identifierSpellings = cached((str: string): Object => {
+  const camelized = camelize(str)
+  return {
+    raw: str,
+    hyphenated: hyphenate(str),
+    camelized: camelized,
+    PascalCase: capitalize(camelized),
+    toString: () => str
+  }
+})
+
+/**
  * Camelize a hyphen-delimited string.
  */
 const camelizeRE = /-(\w)/g

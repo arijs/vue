@@ -15,6 +15,7 @@ import {
   extend,
   hasOwn,
   camelize,
+  identifierSpellings,
   toRawType,
   capitalize,
   isBuiltInTag,
@@ -440,7 +441,22 @@ export function mergeOptions (
  * to assets defined in its ancestor chain.
  */
 export function resolveAsset (
+  context: Component,
+  type: string,
+  id: string,
+  warnMissing?: boolean
+): any {
+  return resolveAssetOptions(context.$options, context, type, id, warnMissing);
+}
+
+/**
+ * Resolve an asset.
+ * This function is used because child instances need access
+ * to assets defined in its ancestor chain.
+ */
+export function resolveAssetOptions (
   options: Object,
+  context: any,
   type: string,
   id: string,
   warnMissing?: boolean
@@ -457,7 +473,13 @@ export function resolveAsset (
   const PascalCaseId = capitalize(camelizedId)
   if (hasOwn(assets, PascalCaseId)) return assets[PascalCaseId]
   // fallback to prototype chain
-  const res = assets[id] || assets[camelizedId] || assets[PascalCaseId]
+  let res = assets[id] || assets[camelizedId] || assets[PascalCaseId]
+  if (!res) {
+    const getAsset = options['get' + capitalize(type.slice(0, -1))]
+    if (getAsset instanceof Function) {
+      res = getAsset.call(context, identifierSpellings(id))
+    }
+  }
   if (process.env.NODE_ENV !== 'production' && warnMissing && !res) {
     warn(
       'Failed to resolve ' + type.slice(0, -1) + ': ' + id,
