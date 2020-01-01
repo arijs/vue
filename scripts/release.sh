@@ -34,23 +34,24 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 
   # update packages
   # using subshells to avoid having to cd back
-  ( ( cd packages/vue-template-compiler
-  npm version "$VERSION"
-  if [[ -z $RELEASE_TAG ]]; then
-    npm publish
-  else
-    npm publish --tag "$RELEASE_TAG"
-  fi
-  )
+  # - do not publish in arijs fork
+  # ( ( cd packages/vue-template-compiler
+  # npm version "$VERSION"
+  # if [[ -z $RELEASE_TAG ]]; then
+  #   npm publish
+  # else
+  #   npm publish --tag "$RELEASE_TAG"
+  # fi
+  # )
 
-  cd packages/vue-server-renderer
-  npm version "$VERSION"
-  if [[ -z $RELEASE_TAG ]]; then
-    npm publish --access public
-  else
-    npm publish --access public --tag "$RELEASE_TAG"
-  fi
-  )
+  # cd packages/vue-server-renderer
+  # npm version "$VERSION"
+  # if [[ -z $RELEASE_TAG ]]; then
+  #   npm publish
+  # else
+  #   npm publish --tag "$RELEASE_TAG"
+  # fi
+  # )
 
   # commit
   git add -A
@@ -67,14 +68,18 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   # generate release note
   npm run release:note
   # tag version
-  npm version "$VERSION" --message "build: release $VERSION"
+  if [[ -z $NO_VERSION_COMMIT_HOOKS ]]; then
+    npm version "$VERSION" --allow-same-version --message "build: release $VERSION"
+  else
+    npm version "$VERSION" --no-commit-hooks --allow-same-version --message "build: release $VERSION"
+  fi
 
   # publish
-  git push origin refs/tags/v"$VERSION"
+  git push origin refs/tags/v"$VERSION" --force
   git push
   if [[ -z $RELEASE_TAG ]]; then
-    npm publish
+    npm publish --access public
   else
-    npm publish --tag "$RELEASE_TAG"
+    npm publish --access public --tag "$RELEASE_TAG"
   fi
 fi
