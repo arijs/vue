@@ -1,5 +1,5 @@
 {
-  "name": "vue",
+  "name": "@arijs/vue",
   "version": "2.6.11",
   "description": "Reactive, component-oriented view layer for modern web interfaces.",
   "main": "dist/vue.runtime.common.js",
@@ -55,17 +55,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vuejs/vue.git"
+    "url": "git+https://github.com/arijs/vue.git"
   },
   "keywords": [
     "vue"
   ],
-  "author": "Evan You",
+  "author": "Rafael Hengles <rafael@hengles.net>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/vuejs/vue/issues"
+    "url": "https://github.com/arijs/vue/issues"
   },
-  "homepage": "https://github.com/vuejs/vue#readme",
+  "homepage": "https://github.com/arijs/vue#readme",
   "devDependencies": {
     "@babel/core": "^7.0.0",
     "@babel/plugin-proposal-class-properties": "^7.1.0",
